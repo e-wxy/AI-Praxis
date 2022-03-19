@@ -2,6 +2,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 import seaborn as sns
+import torch
 
 
 ######################### display samples ########################
@@ -10,7 +11,8 @@ def imshow(image, label, ax=None, normalize=True):
     
     if ax is None:
         fig, ax = plt.subplots()
-    image = image.numpy().transpose((1, 2, 0))
+    if isinstance(image, torch.Tensor):
+        image = image.numpy().transpose((1, 2, 0))
 
     if normalize:
         mean = np.array([0.485, 0.456, 0.406])
