@@ -70,19 +70,27 @@ class Annotation(object):
 
 
 class Data(data.Dataset):
-    def __init__(self, annotations: pd.DataFrame, img_dir: str, transform=None, target_transform=None):
+    def __init__(self, annotations: pd.DataFrame, img_dir: str, patch_num, transform=None, target_transform=None):
         self.img_labels = annotations
         self.img_dir = img_dir
         self.transform = transform
-        self.target_transform = target_transform        
+        self.target_transform = target_transform
+        self.patch_num = patch_num  
 
     def __len__(self):
-        return len(self.img_labels)
+        return len(self.img_labels) * self.patch_num
 
     def __getitem__(self, idx: int):
-        img_path = os.path.join(self.img_dir, self.img_labels.image_id[idx] + '.jpg')
+        if self.patch_num == 1:
+            # temp for test
+            idx_sample = idx
+            img_path = os.path.join(self.img_dir, self.img_labels.image_id[idx_sample] + '.jpg')
+        else:
+            idx_sample = idx // self.patch_num     # index of the original image
+            idx_patch = idx % self.patch_num       # index of the patch
+            img_path = os.path.join(self.img_dir, self.img_labels.image_id[idx_sample]+ '_' + '{:02d}'.format(idx_patch) + '.jpg')
         image = Image.open(img_path)
-        target = self.img_labels['label'].iloc[idx]
+        target = self.img_labels['label'].iloc[idx_sample]
         if self.transform:
             image = self.transform(image)
         if self.target_transform:
