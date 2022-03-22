@@ -5,6 +5,7 @@ from math import exp
 import numpy as np
 from sklearn import metrics
 import pandas as pd
+import cv2
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -110,3 +111,41 @@ def get_confusion(y_true, y_pred, categories):
     c_matrix = metrics.confusion_matrix(y_true, y_pred)
     CMatrix = pd.DataFrame(c_matrix, columns=categories, index=categories)
     return CMatrix
+
+
+# class activation mapping(CAM)
+
+def CAM(feature_of_conv, weight_of_classifier, class_idxs,
+        size_upsample=(224, 224)):
+    """ calculate the class activation mapping
+
+    Args:
+        feature_of_conv(tensor of shape[bs, c, h, w]): the output of the last Conv layer
+            just before the GAP(global average pooling) and FC(fully connected)
+        weight_of_classifier(tensor of shape[num_of_classes, c]): the weight of the FC
+        class_idx(int/list of int): the class index of the input image
+        size_upsample(tuple): the output shape of CAM
+    
+    Returns:
+        A list of 2d ndarray represents the CAM of the batch of inputs
+    """
+    bs, c, h, w = feature_of_conv.shape
+    output_cams = []
+
+    if type(class_idxs) == int:
+        class_idxs = [class_idxs for _ in range(bs)]
+    
+    assert len(class_idxs) == bs, "the length of class_idxs not match the batch size."
+
+    for i in range(bs):
+        # compute cam
+        weights = weight_of_classifier[class_idxs[i]].reshape((1, c))
+        cam = weights @ feature_of_conv[i].reshape((c, h * w))
+        cam = cam.reshape((h, w))
+
+        # change to gray image
+        cam_img = (cam - cam.min()) / (cam.max() - cam.min())
+        cam_img = np.uint8(255 * cam_img)
+        output_cams.append(cv2.resize(cam_img, size_upsample))
+    
+    return output_cams
