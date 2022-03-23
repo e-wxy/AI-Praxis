@@ -2,11 +2,9 @@ import torch
 import os
 
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 # store model
 
-def load_model(path='.', name='model.pkl'):
+def load_model(device, path='.', name='model.pkl'):
     pth_model = os.path.join(path, 'model', name)
     assert os.path.exists(pth_model), "Model file doesn't exist!"
     model = torch.load(pth_model, map_location=device)
@@ -64,7 +62,7 @@ def check_eval(log, costs, train_accs, test_accs, b_accs, f1_scores, pth_check='
     }
 
 
-    for key in checkpoint.keys: 
+    for key in checkpoint.keys(): 
         log.logger.info('{} = {}\n'.format(key, checkpoint[key]))
 
     torch.save(checkpoint, pth_check)

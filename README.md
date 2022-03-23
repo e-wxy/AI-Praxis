@@ -4,7 +4,6 @@
 
 
 ## Environment
-[SageMaker Studio Lab](https://studiolab.sagemaker.aws/)
 
 ### Prerequisites
 
@@ -25,7 +24,7 @@ scikit-learn
 ```
 +---Data
 |   +---ISIC2017
-|   |   +---ISIC-2017-Aug_Training_Data
+|   |   +---(ISIC-2017-Aug_Training_Data)     # 原始扩充训练集 （提取patches时使用）
 |   |   +---ISIC-2017_Test_Data
 |   |   +---ISIC-2017_Validation_Data
 |   |   +---ISIC-2017_Test_v2_Part3_GroundTruth.csv
@@ -39,11 +38,13 @@ scikit-learn
 |   |   +---logger.py			# 日志
 |   |   +---model.py			# 模型加载、存储，checkpoint
 |   |   \---visualize.py		# plot 样本、混淆矩阵
++---utils
+|   |   +---__init__.py
+|   |   +---arl.py
+|   |   +---resnet.py			# baseline model
 \---Transfer Learning.ipynb		# run to test
 
 ```
-
-
 
 ## Dataset
 

@@ -67,7 +67,7 @@ def predict(model, x):
 
 
 @torch.no_grad()
-def make_predictions(model, data_loader):
+def make_predictions(model, data_loader, device):
     """ make predictions on datasets
 
     Returns:
@@ -87,11 +87,11 @@ def make_predictions(model, data_loader):
     return label, pred
     
 
-def accuracies(model, data_loader):
+def accuracies(model, data_loader, device):
     """
     returns accuracy and balanced accuracy
     """
-    y_true, y_pred = make_predictions(model, data_loader)
+    y_true, y_pred = make_predictions(model, data_loader, device)
     acc = metrics.accuracy_score(y_true, y_pred)
     b_acc = metrics.balanced_accuracy_score(y_true, y_pred)
     f1_score = metrics.f1_score(y_true, y_pred, average=None)

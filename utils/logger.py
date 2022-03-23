@@ -8,7 +8,7 @@ class Logger:
         # create logger
         self.logger = logging.getLogger()
         self.logger.setLevel(logging.INFO)  # setting level
-        formatter = logging.Formatter("%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s")
+        formatter = logging.Formatter("[%(asctime)s] %(message)s")
 
         # create file handler
         # setting path for logfile 设置日志文件名称
