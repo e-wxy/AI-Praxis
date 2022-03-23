@@ -3,6 +3,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 import seaborn as sns
 import torch
+import cv2
 
 
 ######################### display samples ########################
@@ -91,3 +92,16 @@ def draw_confusion(cf_matrix):
         ax.set_xlabel('Predicted')
         ax.set_ylabel('Actual')
         ax.set_title(title)
+
+
+# draw the CAM
+
+def draw_cam(ax, cam):
+    """ draw the CAM
+    Args:
+        ax: plt的画轴
+        cam(2d ndarray): the cam matrix
+    """
+    image = cv2.applyColorMap(cam, cv2.COLORMAP_JET)
+    ax.axis("off")
+    ax.imshow(image)
