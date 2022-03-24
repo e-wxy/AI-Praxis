@@ -14,6 +14,10 @@ model_urls = {
     'resnet152': 'https://download.pytorch.org/models/resnet152-b121ed2d.pth',
 }
 
+model_paths = {
+    'resnet50': 'model/resnet50-19c8e357.pth'
+}
+
 
 def conv3x3(in_planes, out_planes, stride=1):
     """3x3 convolution with padding"""
@@ -201,7 +205,8 @@ def arlnet50(pretrained=False, **kwargs):
     """
     model = ARLNet(Bottleneck, [3, 4, 6, 3], **kwargs)
     if pretrained:
-        model_pretrained = model_zoo.load_url(model_urls['resnet50'])
+#         model_pretrained = model_zoo.load_url(model_urls['resnet50'])
+        model_pretrained = torch.load(model_paths['resnet50'])
         model_dict = model.state_dict()
         pretrained_dict = {k: v for k, v in model_pretrained.items() if k in model_dict}
         model_dict.update(pretrained_dict)

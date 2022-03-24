@@ -8,8 +8,6 @@ import pandas as pd
 import cv2
 
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 
 # loss function
 

@@ -7,6 +7,8 @@
 
 ### Prerequisites
 
+Package
+
 ```
 pytorch
 torchvision
@@ -15,7 +17,22 @@ matplotlib
 pandas
 seaborn
 scikit-learn
+opencv
 ```
+
+Create conda env
+
+```shell
+conda create --name env_name --file requirements.txt
+conda activate env_name
+conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
+conda install ipykernel
+python -m ipykernel install --user --name env_name --display-name "Python (env_name)"
+conda install jupyter
+```
+
+*（如导入cv2报错，可尝试用pip重新安装opencv: `pip install opencv-python`）*
+
 
 ### File List
 
@@ -31,6 +48,13 @@ scikit-learn
 |   |   +---ISIC-2017_Training_Aug_Part3_GroundTruth.csv
 |   |   \---ISIC-2017_Validation_Part3_GroundTruth.csv
 |   \---Training_Patch
++---model
+|   |   +---densenet121-a639ec97.pth	# densenet （transfer learning 使用）
+|   |   \---resnet50-19c8e357.pth		# resnet50
++---nets
+|   |   +---__init__.py
+|   |   +---arl.py
+|   |   \---resnet.py			# baseline model
 +---utils
 |   |   +---__init__.py
 |   |   +---data.py				# 数据加载
@@ -38,14 +62,39 @@ scikit-learn
 |   |   +---logger.py			# 日志
 |   |   +---model.py			# 模型加载、存储，checkpoint
 |   |   \---visualize.py		# plot 样本、混淆矩阵
-+---utils
-|   |   +---__init__.py
-|   |   +---arl.py
-|   |   +---resnet.py			# baseline model
 \---Transfer Learning.ipynb		# run to test
 
 ```
 
+预训练模型下载
+
+```shell
+# resnet50
+wget https://download.pytorch.org/models/resnet50-19c8e357.pth
+# densenet121
+wget https://download.pytorch.org/models/densenet121-a639ec97.pth
+```
+
+
+
 ## Dataset
 
 [ISIC Data](https://challenge.isic-archive.com/data/)
+
+## 实验设置
+
+1. Attention机制
+
+   - [ ] 1-1 ARL-50
+   - [ ] 1-2 ResNet-50
+
+2. Loss Function
+
+   ARL-14
+
+   - Focal Loss
+     - [ ] 2-1 alpha = [1/3, 1/3, 1/3]
+     - [ ] 2-2 alpha = [1/num for num in class_nums]
+   - Entropy Loss
+     - [ ] 2-3 weights = [1/3, 1/3, 1/3]
+     - [ ] 2-4 weights = [1/num for num in class_nums]
