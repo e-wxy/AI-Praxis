@@ -24,6 +24,18 @@ def save_model(model, path='.', name='model.pkl'):
     print('Model has been saved to {}'.format(pth_model))
 
 
+def save_state_dict(model, path='.', name='state_dict.pth'):
+    """ save state dict to path/model/temp/name """
+
+    model_dir = os.path.join(path, 'model', 'temp')
+    if not os.path.exists(model_dir):
+      os.makedirs(model_dir)
+      
+    pth_dict = os.path.join(model_dir, name)
+    torch.save(model, pth_dict)
+    print('State dict has been saved to {}'.format(pth_dict))
+
+
 # checkpoint
 
 def check_train(log, model, optimizer, epoch, scheduler=None, pth_check='ch_training.pth'):

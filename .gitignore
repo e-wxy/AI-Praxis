@@ -6,8 +6,8 @@ test.ipynb
 exp/
 
 # data
-# Data/Training_Patch/
 Data/Training_Patch*
+Data/Validation_Patch*
 Data/ISIC2017/ISIC*/
 Data/ISIC2017/ISIC-2017_Test_Part3_GroundTruth.csv
 Data/ISIC2017/ISIC-2017_Training_Add_Part3_GroundTruth.csv

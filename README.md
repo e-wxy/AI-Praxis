@@ -25,7 +25,7 @@ Create conda env
 ```shell
 conda create --name env_name --file requirements.txt
 conda activate env_name
-conda install pytorch torchvision torchaudio cudatoolkit=11.3 -c pytorch
+conda install pytorch torchvision cudatoolkit=11.3 -c pytorch
 conda install ipykernel
 python -m ipykernel install --user --name env_name --display-name "Python (env_name)"
 conda install jupyter
