@@ -26,12 +26,11 @@ Create conda env
 conda create --name env_name --file requirements.txt
 conda activate env_name
 conda install pytorch torchvision cudatoolkit=11.3 -c pytorch
+pip install opencv-python
 conda install ipykernel
 python -m ipykernel install --user --name env_name --display-name "Python (env_name)"
 conda install jupyter
 ```
-
-*（如导入cv2报错，可尝试用pip重新安装opencv: `pip install opencv-python`）*
 
 
 ### File List
@@ -41,16 +40,17 @@ conda install jupyter
 ```
 +---Data
 |   +---ISIC2017
-|   |   +---(ISIC-2017-Aug_Training_Data)     # 原始扩充训练集 （提取patches时使用）
+|   |   +---(ISIC-2017-Aug_Training_Data)     	# 原始扩充训练集 （提取patches时使用）
 |   |   +---ISIC-2017_Test_Data
-|   |   +---ISIC-2017_Validation_Data
+|   |   +---(ISIC-2017_Validation_Data)			# 原始验证集 （提取patches时使用）
 |   |   +---ISIC-2017_Test_v2_Part3_GroundTruth.csv
 |   |   +---ISIC-2017_Training_Aug_Part3_GroundTruth.csv
 |   |   \---ISIC-2017_Validation_Part3_GroundTruth.csv
-|   \---Training_Patch
+|   +---Training_Patch
+|   \---Validation_Patch
 +---model
 |   |   +---densenet121-a639ec97.pth	# densenet （transfer learning 使用）
-|   |   \---resnet50-19c8e357.pth		# resnet50
+|   |   \---resnet50-19c8e357.pth		# resnet50 （ARL50预训练模型）
 +---nets
 |   |   +---__init__.py
 |   |   +---arl.py
@@ -62,7 +62,8 @@ conda install jupyter
 |   |   +---logger.py			# 日志
 |   |   +---model.py			# 模型加载、存储，checkpoint
 |   |   \---visualize.py		# plot 样本、混淆矩阵
-\---Transfer Learning.ipynb		# run to test
++---ARL-CNN.ipynb				# ARL模型
+\---(Transfer Learning.ipynb)	# run to test
 
 ```
 

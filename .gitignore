@@ -4,6 +4,10 @@ Ref/
 logs/
 test.ipynb
 exp/
+# test
+*.out
+ARL-CNN.py
+test.py
 
 # data
 Data/Training_Patch*

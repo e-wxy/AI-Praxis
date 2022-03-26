@@ -4,4 +4,3 @@ matplotlib
 pandas
 seaborn
 scikit-learn
-opencv

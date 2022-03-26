@@ -32,8 +32,16 @@ def save_state_dict(model, path='.', name='state_dict.pth'):
       os.makedirs(model_dir)
       
     pth_dict = os.path.join(model_dir, name)
-    torch.save(model, pth_dict)
+    torch.save(model.state_dict(), pth_dict)
     print('State dict has been saved to {}'.format(pth_dict))
+    
+    
+def load_state_dict(model, device, path='.', name='state_dict.pth'):
+    """ load model parmas from state_dict """
+    pth_dict = os.path.join(path, 'model', 'temp', name)
+    assert os.path.exists(pth_dict), "Dict file doesn't exist!"
+    model.load_state_dict(torch.load(pth_dict, map_location=device))
+    return model
 
 
 # checkpoint
