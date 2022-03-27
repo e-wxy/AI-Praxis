@@ -94,8 +94,28 @@ wget https://download.pytorch.org/models/densenet121-a639ec97.pth
    ARL-14
 
    - Focal Loss
-     - [ ] 2-1 alpha = [1/3, 1/3, 1/3]
-     - [ ] 2-2 alpha = [1/num for num in class_nums]
+     - [ ] 2-1 alpha = [1, 1, 1]
+     - [ ] 2-2 alpha = [average(class_nums)/num for num in class_nums]
    - Entropy Loss
-     - [ ] 2-3 weights = [1/3, 1/3, 1/3]
-     - [ ] 2-4 weights = [1/num for num in class_nums]
+     - [ ] 2-3 weights = [1, 1, 1]
+     - [ ] 2-4 weights = [average(class_nums)/num for num in class_nums]
+
+## Tips
+
+Run in a terminal
+
+```shell
+# (activate env)
+conda activate env_name
+# convert .ipynb to .py
+jupyter nbconvert --to script ARL-CNN.ipynb
+# nohup
+nohup python ARL-CNN.py
+```
+
+Check GPU info
+
+```shell
+nvidia-smi
+```
+

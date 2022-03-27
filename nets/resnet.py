@@ -1,6 +1,11 @@
 import torch
 import torch.nn as nn
 
+
+model_paths = {
+    'resnet50': 'model/resnet50-19c8e357.pth'
+}
+
 def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
     """3x3 convolution with padding"""
     return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride,
@@ -195,12 +200,21 @@ class ResNet(nn.Module):
     forward = _forward
 
 
-def _resnet(arch, block, layers, progress, **kwargs):
+def _resnet(arch, block, layers, pretrained, **kwargs):
     model = ResNet(block, layers, **kwargs)
+    if pretrained:
+        state_dict = torch.load(model_paths[arch])
+        remove_keys = []
+        for key in state_dict.keys():
+            if "fc" in key:
+                remove_keys.append(key)
+        for key in remove_keys:
+            state_dict.__delitem__(key)
+        model.load_state_dict(state_dict, strict=False)
     return model
 
 
-def resnet18(progress=True, **kwargs):
+def resnet18(pretrained=False, **kwargs):
     r"""ResNet-18 model from
     `"Deep Residual Learning for Image Recognition" <https://arxiv.org/pdf/1512.03385.pdf>`_
 
@@ -208,12 +222,12 @@ def resnet18(progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _resnet('resnet18', BasicBlock, [2, 2, 2, 2], progress,
+    return _resnet('resnet18', BasicBlock, [2, 2, 2, 2], pretrained,
                    **kwargs)
 
 
 
-def resnet50(progress=True, **kwargs):
+def resnet50(pretrained=True, **kwargs):
     r"""ResNet-50 model from
     `"Deep Residual Learning for Image Recognition" <https://arxiv.org/pdf/1512.03385.pdf>`_
 
@@ -221,6 +235,5 @@ def resnet50(progress=True, **kwargs):
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    return _resnet('resnet50', Bottleneck, [3, 4, 6, 3], progress,
+    return _resnet('resnet50', Bottleneck, [3, 4, 6, 3], pretrained,
                    **kwargs)
-
