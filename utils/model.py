@@ -39,7 +39,7 @@ def save_state_dict(model, path='.', name='state_dict.pth'):
 def load_state_dict(model, device, path='.', name='state_dict.pth'):
     """ load model parmas from state_dict """
     pth_dict = os.path.join(path, 'model', 'temp', name)
-    assert os.path.exists(pth_dict), "Dict file doesn't exist!"
+    assert os.path.exists(pth_dict), "State dict file doesn't exist!"
     model.load_state_dict(torch.load(pth_dict, map_location=device))
     return model
 
@@ -53,6 +53,11 @@ def check_train(log, model, optimizer, epoch, scheduler=None, pth_check='ch_trai
         log (Logger)
         pth_check (str): path to store the checkpoint.
     """
+    check_dir = 'checkpoint'
+    if not os.path.exists(check_dir):
+      os.makedirs(check_dir)
+    pth_check = os.path.join(check_dir, pth_check)
+
     log.logger.info("Saving training checkpoint at {}".format(pth_check))
     checkpoint = {
         'model_state_dict': model.state_dict(),
@@ -72,6 +77,11 @@ def check_eval(log, costs, train_accs, test_accs, b_accs, f1_scores, pth_check='
         log (Logger)
         pth_eval (str): path to store the checkpoint.
     """
+    check_dir = 'checkpoint'
+    if not os.path.exists(check_dir):
+      os.makedirs(check_dir)
+    pth_check = os.path.join(check_dir, pth_check)
+    
     log.logger.info("Saving training checkpoint at {}".format(pth_check))
     checkpoint = {
         'costs': costs,
@@ -101,6 +111,7 @@ def load_train(log, model, optimizer, scheduler=None, pth_check=None):
     if pth_check == None:
         return 0
     
+    pth_check = os.path.join('checkpoint', pth_check)
     log.logger.info("Reloading training checkpoint from {}".format(pth_check))
     checkpoint = torch.load(pth_check)
 
@@ -128,6 +139,7 @@ def load_eval(log, pth_check=None):
     if pth_check == None:
         return [], [], [], [], []
 
+    pth_check = os.path.join('checkpoint', pth_check)
     log.logger.info("Reloading evaluation checkpoint from {}".format(pth_check))
     checkpoint = torch.load(pth_check)
 

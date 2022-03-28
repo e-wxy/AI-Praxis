@@ -119,3 +119,8 @@ Check GPU info
 nvidia-smi
 ```
 
+Unzip
+
+```shell
+tar -xzvf Training_Patch.tar.gz
+```
