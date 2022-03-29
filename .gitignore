@@ -7,7 +7,7 @@ exp/
 # test
 *.out
 ARL-CNN.py
-test.py
+Res.py
 
 # data
 Data/Training_Patch*

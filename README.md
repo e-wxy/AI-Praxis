@@ -91,7 +91,7 @@ wget https://download.pytorch.org/models/densenet121-a639ec97.pth
 
 2. Loss Function
 
-   ARL-14
+   ARL-14 (注意更改学习率为0.01)
 
    - Focal Loss
      - [ ] 2-1 alpha = [1, 1, 1]
