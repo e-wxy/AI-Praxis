@@ -37,7 +37,7 @@ class BasicBlock(nn.Module):
         self.bn2 = nn.BatchNorm2d(planes)
         self.downsample = downsample
         self.stride = stride
-        self.alpha = alpha
+        self.alpha = torch.nn.Parameter(torch.tensor(alpha))
 
     def forward(self, x):
         residual = x
@@ -77,7 +77,7 @@ class Bottleneck(nn.Module):
         self.relu = nn.ReLU(inplace=True)
         self.downsample = downsample
         self.stride = stride
-        self.alpha = alpha
+        self.alpha = torch.nn.Parameter(torch.tensor(alpha))
 
     def forward(self, x):
         residual = x
