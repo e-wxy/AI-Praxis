@@ -103,5 +103,6 @@ def draw_cam(ax, cam):
         cam(2d ndarray): the cam matrix
     """
     image = cv2.applyColorMap(cam, cv2.COLORMAP_JET)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     ax.axis("off")
     ax.imshow(image)
