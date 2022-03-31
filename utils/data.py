@@ -2,6 +2,8 @@ import pandas as pd
 from torch.utils import data
 from PIL import Image
 import os
+import random
+from torchvision import transforms
 
 
 class Annotation(object):
@@ -96,3 +98,45 @@ class Data(data.Dataset):
         if self.target_transform:
             target = self.target_transform(target)
         return image, target
+
+
+class RandomPatch(data.Dataset):
+    def __init__(self, annotations, img_dir: str, transform=None, target_transform=None):
+        self.img_labels = annotations
+        self.img_dir = img_dir
+        self.transform = transform
+        self.target_transform = target_transform
+        self.scales = [1/5, 2/5, 3/5, 4/5]
+
+    def __len__(self):
+        return len(self.img_labels)
+
+    def __getitem__(self, idx: int):
+        idx_sample = idx
+        img_path = os.path.join(self.img_dir, self.img_labels.image_id[idx_sample] + '.jpg')
+        image = Image.open(img_path)
+        image = self.rescale_crop(image)
+        target = self.img_labels['label'].iloc[idx_sample]
+        if self.transform:
+            image = self.transform(image)
+        if self.target_transform:
+            target = self.target_transform(target)
+        return image, target
+
+    def rescale_crop(self, image):
+        scale = self.scales[random.randint(0, 3)]
+        w, h = image.size
+        if scale > 2/3:
+            trans = transforms.Compose([
+                transforms.RandomCrop((int(h * scale), int(w * scale)), pad_if_needed=True, padding_mode='edge'),
+                transforms.Resize((224, 224))])
+        else:
+            trans = transforms.Compose([
+            transforms.CenterCrop((int(h - h * (1 - scale)**2), int(w - w * (1 - scale)**2))),
+            transforms.RandomCrop((int(h * scale), int(w * scale)), pad_if_needed=True, padding_mode='edge'),
+            transforms.Resize((224, 224))
+        ])
+
+        img = trans(image)
+
+        return img

@@ -131,7 +131,7 @@ def load_train(log, model, optimizer, scheduler=None, pth_check=None):
 
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    start_epoch = checkpoint['epoch']
+    start_epoch = checkpoint['epoch'] + 1
 
     if scheduler:
         scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
