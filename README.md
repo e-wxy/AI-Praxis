@@ -40,14 +40,12 @@ conda install jupyter
 ```
 +---Data
 |   +---ISIC2017
-|   |   +---(ISIC-2017-Aug_Training_Data)     	# 原始扩充训练集 （提取patches时使用）
-|   |   +---ISIC-2017_Test_Data
-|   |   +---(ISIC-2017_Validation_Data)			# 原始验证集 （提取patches时使用）
+|   |   +---Aug_Training_Data			     	# 扩充训练集（原始+Extra）
+|   |   +---ISIC-2017_Test_Data					# 原始测试集
+|   |   +---ISIC-2017_Validation_Data			# 原始验证集
 |   |   +---ISIC-2017_Test_v2_Part3_GroundTruth.csv
 |   |   +---ISIC-2017_Training_Aug_Part3_GroundTruth.csv
 |   |   \---ISIC-2017_Validation_Part3_GroundTruth.csv
-|   +---Training_Patch
-|   \---Validation_Patch
 +---model
 |   |   +---densenet121-a639ec97.pth	# densenet （transfer learning 使用）
 |   |   \---resnet50-19c8e357.pth		# resnet50 （ARL50预训练模型）
@@ -91,7 +89,7 @@ wget https://download.pytorch.org/models/densenet121-a639ec97.pth
 
 2. Loss Function
 
-   ARL-14
+   ARL-14 (注意更改学习率为0.01)
 
    - Focal Loss
      - [ ] 2-1 alpha = [1, 1, 1]

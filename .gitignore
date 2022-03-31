@@ -7,12 +7,13 @@ exp/
 # test
 *.out
 ARL-CNN.py
-test.py
+Res.py
 
 # data
-Data/Training_Patch*
-Data/Validation_Patch*
-Data/ISIC2017/ISIC*/
+.zip
+.tar.gz
+Data/ISIC2017/*/
+Data/*/
 Data/ISIC2017/ISIC-2017_Test_Part3_GroundTruth.csv
 Data/ISIC2017/ISIC-2017_Training_Add_Part3_GroundTruth.csv
 Data/ISIC2017/ISIC-2017_Training_Part3_GroundTruth.csv
