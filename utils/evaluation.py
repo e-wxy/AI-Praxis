@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from math import exp
 import numpy as np
 from sklearn import metrics
+from sklearn.preprocessing import label_binarize
 import pandas as pd
 import cv2
 
@@ -110,6 +110,192 @@ def get_confusion(y_true, y_pred, categories):
     CMatrix = pd.DataFrame(c_matrix, columns=categories, index=categories)
     return CMatrix
 
+
+# AUC
+@torch.no_grad()
+def get_probs(model, data_loader, device):
+    model.eval()
+    label = []
+    prob = [[1 for _ in range(3)]]
+    soft = nn.Softmax(dim=-1)
+
+    for x, y in data_loader:
+        x, y = x.to(device), y.to(device)
+        z = model(x)
+        p = soft(z)
+        prob = np.concatenate((prob, p.to('cpu')), axis=-2)
+        label = np.concatenate((label, y.to('cpu')), axis=-1)
+    
+    prob = prob[1::]
+    class_num = prob.shape[1]
+    y = label_binarize(label, classes=[i for i in range(class_num)])
+
+    return y, prob
+
+def auc_scores(y, prob):
+    class_num = prob.shape[1]
+
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+
+    # Compute ROC curve and ROC area for each class
+    for i in range(class_num):
+        fpr[i], tpr[i], _ = metrics.roc_curve(y[:, i], prob[:, i])
+        roc_auc[i] = metrics.auc(fpr[i], tpr[i])
+
+    # Compute micro-average ROC curve and ROC area (computed globally)
+    fpr["micro"], tpr["micro"], _ = metrics.roc_curve(y.ravel(), prob.ravel())
+    roc_auc["micro"] = metrics.auc(fpr["micro"], tpr["micro"])
+
+    # Compute macro-average ROC curve and ROC area (simply average on each label)
+    # aggregate all false positive rates
+    all_fpr = np.unique(np.concatenate([fpr[i] for i in range(class_num)]))
+    # interpolate all ROC curves at this points
+    mean_tpr = np.zeros_like(all_fpr)
+    for i in range(class_num):
+        mean_tpr += np.interp(all_fpr, fpr[i], tpr[i])
+    # average it and compute AUC
+    mean_tpr /= class_num
+
+    fpr["macro"] = all_fpr
+    tpr["macro"] = mean_tpr
+    roc_auc["macro"] = metrics.auc(fpr["macro"], tpr["macro"])
+
+    return fpr, tpr, roc_auc
+
+
+class Evaluation:
+    def __init__(self, device, categories, best_score=0) -> None:
+        self.device = device
+        self.categories = categories
+        self.class_num = len(categories)
+        self.best_score = best_score
+
+    @torch.no_grad()
+    def get_probs(self, model, data_loader):
+        """ get predicted probabilities
+
+        Returns:
+            y: one-hot labels
+            prob: predicted probabilities
+        """
+        model.eval()
+        label = []
+        prob = [[1 for _ in range(3)]]
+        soft = nn.Softmax(dim=-1)
+
+        for x, y in data_loader:
+            x, y = x.to(self.device), y.to(self.device)
+            z = model(x)
+            p = soft(z)
+            prob = np.concatenate((prob, p.to('cpu')), axis=-2)
+            label = np.concatenate((label, y.to('cpu')), axis=-1)
+        
+        self.prob = prob[1::]
+        self.class_num = prob.shape[1]
+        self.y = label_binarize(label, classes=[i for i in range(self.class_num)])
+
+        return self.y, self.prob
+
+    @torch.no_grad()
+    def make_predictions(self, model, data_loader):
+        """ make predictions on datasets
+
+        Returns:
+            lists of labels and predictions
+        """
+        model.eval()
+        self.label = []
+        self.pred = []
+
+        for x, y in data_loader:
+            x, y = x.to(self.device), y.to(self.device)
+            z = model(x)
+            _, yhat = torch.max(z.data, 1)
+            self.label = np.concatenate((self.label, y.to('cpu')), axis=-1)
+            self = np.concatenate((self.pred, yhat.to('cpu')), axis=-1)
+
+        return self.label, self.pred
+
+    def get_acc(self):
+        self.acc = metrics.accuracy_score(self.label, self.pred)
+        return self.acc
+
+    def get_bacc(self):
+        self.b_acc = metrics.balanced_accuracy_score(self.label, self.pred)
+        return self.b_acc
+
+    def get_f1(self):
+        self.f1_score = list(metrics.f1_score(self.label, self.pred, average=None))
+        return self.f1_score
+
+    def accuracies(self, model, data_loader):
+        """
+        returns accuracy and balanced accuracy
+        """
+        self.make_predictions(model, data_loader)
+        self.get_acc()
+        self.get_bacc()
+        self.get_f1()
+
+    def auc_scores(self):
+        self.fpr = dict()
+        self.tpr = dict()
+        self.roc_auc = dict()
+
+        # Compute ROC curve and ROC area for each class
+        for i in range(self.class_num):
+            self.fpr[i], self.tpr[i], _ = metrics.roc_curve(self.y[:, i], self.prob[:, i])
+            self.roc_auc[i] = metrics.auc(self.fpr[i], self.tpr[i])
+
+        # Compute micro-average ROC curve and ROC area (computed globally)
+        self.fpr["micro"], self.tpr["micro"], _ = metrics.roc_curve(self.y.ravel(), self.prob.ravel())
+        self.roc_auc["micro"] = metrics.auc(self.fpr["micro"], self.tpr["micro"])
+
+        # Compute macro-average ROC curve and ROC area (simply average on each label)
+        # aggregate all false positive rates
+        all_fpr = np.unique(np.concatenate([self.fpr[i] for i in range(self.class_num)]))
+        # interpolate all ROC curves at this points
+        mean_tpr = np.zeros_like(all_fpr)
+        for i in range(self.class_num):
+            mean_tpr += np.interp(all_fpr, self.fpr[i], self.tpr[i])
+        # average it and compute AUC
+        mean_tpr /= self.class_num
+
+        self.fpr["macro"] = all_fpr
+        self.tpr["macro"] = mean_tpr
+        self.roc_auc["macro"] = metrics.auc(self.fpr["macro"], self.tpr["macro"])
+
+        return self.fpr, self.tpr, self.roc_auc
+
+    def get_report(self):
+        self.report = metrics.classification_report(self.label, self.pred, target_names=self.categories)
+        return self.report
+
+    def get_confusion(self):
+        """ calculate the confusion matrix
+
+        Returns:
+            DataFrame of confusion matrix: (i, j) - the number of samples with true label being i-th class and predicted label being j-th class.
+        """
+        c_matrix = metrics.confusion_matrix(self.label, self.pred)
+        self.CMatrix = pd.DataFrame(c_matrix, columns=self.categories, index=self.categories)
+        return self.CMatrix
+    
+    def complete_scores(self):
+        self.label = np.argmax(self.y, axis=1)
+        self.pred = np.argmax(self.prob, axis=1)
+        self.get_report()
+        self.get_acc()
+        self.get_bacc()
+        self.get_f1()
+        self.auc_scores()
+        self.get_confusion()
+
+
+
+    
 
 # class activation mapping(CAM)
 

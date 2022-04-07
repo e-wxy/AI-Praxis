@@ -1,10 +1,11 @@
 import pandas as pd
 from torch.utils import data
-from PIL import Image
+from PIL import Image, ImageFile
 import os
 import random
 from torchvision import transforms
 
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 class Annotation(object):
     """ annotate ISIC 2017
@@ -126,7 +127,7 @@ class RandomPatch(data.Dataset):
     def rescale_crop(self, image):
         scale = self.scales[random.randint(0, 3)]
         w, h = image.size
-        if scale > 2/3:
+        if scale > 1/2:
             trans = transforms.Compose([
                 transforms.RandomCrop((int(h * scale), int(w * scale)), pad_if_needed=True, padding_mode='edge'),
                 transforms.Resize((224, 224))])
