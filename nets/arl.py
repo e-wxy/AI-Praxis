@@ -175,7 +175,7 @@ def arlnet18(pretrained=False, **kwargs):
     if pretrained:
         model_pretrained = model_zoo.load_url(model_urls['resnet18'])
         model_dict = model.state_dict()
-        pretrained_dict = {k: v for k, v in model_pretrained.items() if k in model_dict}
+        pretrained_dict = {k: v for k, v in model_pretrained.items() if k in model_dict and "fc" not in k}
         model_dict.update(pretrained_dict)
         model.load_state_dict(model_dict)
     return model
@@ -191,7 +191,7 @@ def arlnet34(pretrained=False, **kwargs):
     if pretrained:
         model_pretrained = model_zoo.load_url(model_urls['resnet34'])
         model_dict = model.state_dict()
-        pretrained_dict = {k: v for k, v in model_pretrained.items() if k in model_dict}
+        pretrained_dict = {k: v for k, v in model_pretrained.items() if k in model_dict and "fc" not in k}
         model_dict.update(pretrained_dict)
         model.load_state_dict(model_dict)
     return model
@@ -208,7 +208,7 @@ def arlnet50(pretrained=False, **kwargs):
 #         model_pretrained = model_zoo.load_url(model_urls['resnet50'])
         model_pretrained = torch.load(model_paths['resnet50'])
         model_dict = model.state_dict()
-        pretrained_dict = {k: v for k, v in model_pretrained.items() if k in model_dict}
+        pretrained_dict = {k: v for k, v in model_pretrained.items() if k in model_dict and "fc" not in k}
         model_dict.update(pretrained_dict)
         model.load_state_dict(model_dict)
     return model
@@ -224,7 +224,7 @@ def arlnet101(pretrained=False, **kwargs):
     if pretrained:
         model_pretrained = model_zoo.load_url(model_urls['resnet101'])
         model_dict = model.state_dict()
-        pretrained_dict = {k: v for k, v in model_pretrained.items() if k in model_dict}
+        pretrained_dict = {k: v for k, v in model_pretrained.items() if k in model_dict and "fc" not in k}
         model_dict.update(pretrained_dict)
         model.load_state_dict(model_dict)
     return model
@@ -240,7 +240,7 @@ def arlnet152(pretrained=False, **kwargs):
     if pretrained:
         model_pretrained = model_zoo.load_url(model_urls['resnet152'])
         model_dict = model.state_dict()
-        pretrained_dict = {k: v for k, v in model_pretrained.items() if k in model_dict}
+        pretrained_dict = {k: v for k, v in model_pretrained.items() if k in model_dict and "fc" not in k}
         model_dict.update(pretrained_dict)
         model.load_state_dict(model_dict)
     return model
