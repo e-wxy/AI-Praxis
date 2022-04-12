@@ -7,7 +7,8 @@ exp/
 # test
 *.out
 ARL-CNN.py
-Res.py
+Res*
+Demo/*.py
 
 # data
 .zip
@@ -17,7 +18,7 @@ Data/*/
 Data/ISIC2017/ISIC-2017_Test_Part3_GroundTruth.csv
 Data/ISIC2017/ISIC-2017_Training_Add_Part3_GroundTruth.csv
 Data/ISIC2017/ISIC-2017_Training_Part3_GroundTruth.csv
-Data/ISIC2017/ISIC-2017_Training_Extra_Part3_GroundTruth.csv
+ISIC-2017_Training_Extra_Part3_GroundTruth.csv
 *.npy
 *.pkl
 *.pth

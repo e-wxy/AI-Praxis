@@ -107,7 +107,7 @@ class RandomPatch(data.Dataset):
         self.img_dir = img_dir
         self.transform = transform
         self.target_transform = target_transform
-        self.scales = [1/5, 2/5, 3/5, 4/5]
+        self.scales = [1/5, 2/5, 3/5, 4/5, 2/5, 3/5, 4/5, 3/5, 4/5]
 
     def __len__(self):
         return len(self.img_labels)
@@ -125,16 +125,16 @@ class RandomPatch(data.Dataset):
         return image, target
 
     def rescale_crop(self, image):
-        scale = self.scales[random.randint(0, 3)]
+        scale = self.scales[random.randint(0, 8)]
         w, h = image.size
         if scale > 1/2:
             trans = transforms.Compose([
-                transforms.RandomCrop((int(h * scale), int(w * scale)), pad_if_needed=True, padding_mode='edge'),
+                transforms.RandomCrop((int(h * scale), int(w * scale)), pad_if_needed=True, padding_mode='constant'),
                 transforms.Resize((224, 224))])
         else:
             trans = transforms.Compose([
             transforms.CenterCrop((int(h - h * (1 - scale)**2), int(w - w * (1 - scale)**2))),
-            transforms.RandomCrop((int(h * scale), int(w * scale)), pad_if_needed=True, padding_mode='edge'),
+            transforms.RandomCrop((int(h * scale), int(w * scale)), pad_if_needed=True, padding_mode='constant'),
             transforms.Resize((224, 224))
         ])
 
