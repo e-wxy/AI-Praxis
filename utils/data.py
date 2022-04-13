@@ -130,13 +130,14 @@ class RandomPatch(data.Dataset):
         if scale > 1/2:
             trans = transforms.Compose([
                 transforms.RandomCrop((int(h * scale), int(w * scale)), pad_if_needed=True, padding_mode='constant'),
-                transforms.Resize((224, 224))])
+                transforms.Resize((224, 224))
+            ])
         else:
             trans = transforms.Compose([
             transforms.CenterCrop((int(h - h * (1 - scale)**2), int(w - w * (1 - scale)**2))),
             transforms.RandomCrop((int(h * scale), int(w * scale)), pad_if_needed=True, padding_mode='constant'),
-            transforms.Resize((224, 224))
-        ])
+            # transforms.Resize((224, 224))
+            ])
 
         img = trans(image)
 
