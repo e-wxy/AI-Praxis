@@ -194,9 +194,20 @@ class Evaluation:
         
         self.prob = prob[1::]
         self.class_num = prob.shape[1]
+        self.label = label
         self.y = label_binarize(label, classes=[i for i in range(self.class_num)])
 
         return self.y, self.prob
+
+    def get_preds(self):
+        """ make prediction from probs
+
+        Returns:
+            np.arracy: predictions in index form
+        """
+        self.pred = np.argmax(self.prob, axis=1)
+        return self.pred
+
 
     @torch.no_grad()
     def make_predictions(self, model, data_loader):
@@ -230,14 +241,19 @@ class Evaluation:
         self.f1_score = list(metrics.f1_score(self.label, self.pred, average=None))
         return self.f1_score
 
-    def accuracies(self, model, data_loader):
+
+    def binary_accuracies(self):
         """
-        returns accuracy and balanced accuracy
+        returns accuracies on MEL and SK in binary fashion
         """
-        self.make_predictions(model, data_loader)
-        self.get_acc()
-        self.get_bacc()
-        self.get_f1()
+        self.mel_pred = (self.pred == 0)
+        self.mel_label = (self.label == 0)
+        self.sk_pred = (self.pred == 1)
+        self.sk_label = (self.label == 1)
+        self.mel_acc = metrics.accuracy_score(self.mel_label, self.mel_pred)
+        self.sk_acc = metrics.accuracy_score(self.sk_label, self.sk_pred)
+        return self.mel_pred, self.sk_pred
+
 
     def auc_scores(self):
         self.fpr = dict()
@@ -283,15 +299,22 @@ class Evaluation:
         self.CMatrix = pd.DataFrame(c_matrix, columns=self.categories, index=self.categories)
         return self.CMatrix
     
-    def complete_scores(self):
-        self.label = np.argmax(self.y, axis=1)
-        self.pred = np.argmax(self.prob, axis=1)
-        self.get_report()
+    def complete_scores(self, mode="train"):
+        """ compute evaluation scores from self.probs
+
+        Args:
+            mode (str): "train" or "test". Defaults to "train", in which, only acc and auc will be computed.
+        """
+        self.get_preds()
         self.get_acc()
+        self.auc_scores()
         self.get_bacc()
         self.get_f1()
-        self.auc_scores()
-        self.get_confusion()
+
+        if mode != "train":
+            self.get_report()
+            self.get_confusion()
+            self.binary_accuracies()
 
 
 
