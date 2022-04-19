@@ -61,8 +61,7 @@ conda install jupyter
 |   |   +---model.py			# 模型加载、存储，checkpoint
 |   |   \---visualize.py		# plot 样本、混淆矩阵
 +---ARL-CNN.ipynb				# ARL模型
-\---(Transfer Learning.ipynb)	# run to test
-
+\---Evaluation.ipynb			# 模型性能评估
 ```
 
 预训练模型下载
@@ -70,8 +69,6 @@ conda install jupyter
 ```shell
 # resnet50
 wget https://download.pytorch.org/models/resnet50-19c8e357.pth
-# densenet121
-wget https://download.pytorch.org/models/densenet121-a639ec97.pth
 ```
 
 
@@ -89,14 +86,14 @@ wget https://download.pytorch.org/models/densenet121-a639ec97.pth
 
 2. Loss Function
 
-   ARL-14 (注意更改学习率为0.01)
+   ARL-14
 
    - Focal Loss
      - [ ] 2-1 alpha = [1, 1, 1]
-     - [ ] 2-2 alpha = [average(class_nums)/num for num in class_nums]
+     - [ ] 2-2 alpha = [2.5, 2.5, 0.5]
    - Entropy Loss
      - [ ] 2-3 weights = [1, 1, 1]
-     - [ ] 2-4 weights = [average(class_nums)/num for num in class_nums]
+     - [ ] 2-4 weights = [2.5, 2.5, 0.5]
 
 ## Tips
 

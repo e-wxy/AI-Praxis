@@ -6,7 +6,7 @@ test.ipynb
 exp/
 # test
 *.out
-ARL-CNN.py
+ARL*.py
 Res*
 Demo/*.py
 
