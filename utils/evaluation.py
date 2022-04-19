@@ -286,7 +286,7 @@ class Evaluation:
         return self.fpr, self.tpr, self.roc_auc
 
     def get_report(self):
-        self.report = metrics.classification_report(self.label, self.pred, target_names=self.categories)
+        self.report = metrics.classification_report(self.label, self.pred, target_names=self.categories, digits=3)
         return self.report
 
     def get_confusion(self):
