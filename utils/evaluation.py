@@ -295,9 +295,35 @@ class Evaluation:
         Returns:
             DataFrame of confusion matrix: (i, j) - the number of samples with true label being i-th class and predicted label being j-th class.
         """
-        c_matrix = metrics.confusion_matrix(self.label, self.pred)
-        self.CMatrix = pd.DataFrame(c_matrix, columns=self.categories, index=self.categories)
-        return self.CMatrix
+        self.c_matrix = metrics.confusion_matrix(self.label, self.pred)
+        self.CMatrix = pd.DataFrame(self.c_matrix, columns=self.categories, index=self.categories)
+        return self.c_matrix
+    
+    
+    def extended_classification_report(self, classes: set = None):
+        report = metrics.classification_report(self.label, self.pred, output_dict=True, zero_division=0)
+        report['macro avg']['specificity'] = self.specificity(self.label, self.pred, classes=classes)
+        return report
+
+
+    def specificity(self, classes: set = None):
+
+        if classes is None: # Determine classes from the values
+            classes = set(np.concatenate((np.unique(self.label), np.unique(self.pred))))
+
+        self.specs = []
+        for cls in classes:
+            y_true_cls = (self.label == cls).astype(int)
+            y_pred_cls = (self.pred == cls).astype(int)
+
+            fp = sum(y_pred_cls[y_true_cls != 1])
+            tn = sum(y_pred_cls[y_true_cls == 0] == False)
+
+            specificity_val = tn / (tn + fp)
+            self.specs.append(specificity_val)
+
+        return self.specs
+        
     
     def complete_scores(self, mode="train"):
         """ compute evaluation scores from self.probs
@@ -310,11 +336,13 @@ class Evaluation:
         self.auc_scores()
         self.get_bacc()
         self.get_f1()
-
+        
         if mode != "train":
             self.get_report()
             self.get_confusion()
             self.binary_accuracies()
+            self.specificity(classes=[i for i in range(len(self.categories))])
+
 
 
 
