@@ -9,51 +9,6 @@ import cv2
 
 
 
-# loss function
-
-class FocalLoss(nn.Module):
-    def __init__(self, alpha: list, gamma=2, num_classes: int = 10, reduction='mean'):
-        """ Focal Loss
-
-        Args:
-            alpha (list): 类别权重 class weight
-            gamma (int/float): 难易样本调节参数 focusing parameter
-            num_classes (int): 类别数量 number of classes
-            reduction (string): 'mean', 'sum', 'none'
-        """
-        super(FocalLoss, self).__init__()
-        assert len(alpha) == num_classes, "alpha size doesn't match with class number"
-        self.alpha = torch.Tensor(alpha)
-        self.gamma = gamma
-        self.reduction = reduction
-
-    def forward(self, preds, labels):
-        """
-        Shape:
-            preds: [B, N, C] or [B, C]
-            labels: [B, N] or [B]
-        """
-        preds = preds.view(-1, preds.size(-1))
-        self.alpha = self.alpha.to(preds.device)
-        preds_softmax = F.softmax(preds, dim=1)
-        preds_logsoft = torch.log(preds_softmax)
-
-        preds_softmax = preds_softmax.gather(1, labels.view(-1, 1))
-        preds_logsoft = preds_logsoft.gather(1, labels.view(-1, 1))
-        self.alpha = self.alpha.gather(0, labels.view(-1))
-        loss = - torch.mul(torch.pow((1-preds_softmax), self.gamma), preds_logsoft) # torch.pow((1-preds_softmax), self.gamma) - (1-pt)**γ
-        loss = torch.mul(self.alpha, loss.t())
-        
-        if self.reduction == 'mean':
-            loss = loss.mean()
-        elif self.reduction == 'sum':
-            loss = loss.sum()
-        return loss
-
-    def __str__(self) -> str:
-        return "Criterion: Focal Loss\n α = {}\n γ = {}".format(self.alpha, self.gamma)
-
-
 
 # predict
 
@@ -384,3 +339,37 @@ def CAM(feature_of_conv, weight_of_classifier, class_idxs,
         output_cams.append(cv2.resize(cam_img, size_upsample))
     
     return output_cams
+
+
+
+# Evaluation Metrics for Segmentation tasks
+
+@torch.no_grad()
+def pixel_accuracy(output, mask):
+    output = torch.argmax(F.softmax(output, dim=1), dim=1)
+    correct = torch.eq(output, mask).int()
+    accuracy = float(correct.sum()) / float(correct.numel())
+    return accuracy
+
+
+@torch.no_grad()
+def mIoU(pred_mask, mask, smooth=1e-10, n_classes=2):
+    pred_mask = F.softmax(pred_mask, dim=1)
+    pred_mask = torch.argmax(pred_mask, dim=1)
+    pred_mask = pred_mask.contiguous().view(-1)
+    mask = mask.contiguous().view(-1)
+
+    iou_per_class = []
+    for clas in range(0, n_classes): # loop per pixel class
+        true_class = pred_mask == clas
+        true_label = mask == clas
+
+        if true_label.long().sum().item() == 0: # no exist label in this loop
+            iou_per_class.append(np.nan)
+        else:
+            intersect = torch.logical_and(true_class, true_label).sum().float().item()
+            union = torch.logical_or(true_class, true_label).sum().float().item()
+
+            iou = (intersect + smooth) / (union + smooth)
+            iou_per_class.append(iou)
+    return np.nanmean(iou_per_class)

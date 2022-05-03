@@ -4,11 +4,12 @@ import os
 
 
 class Logger:
-    def __init__(self, mode='w', verbose=True, title=""):
+    def __init__(self, mode='w', title="", verbose=True):
         # create logger
         self.logger = logging.getLogger()
         self.logger.setLevel(logging.INFO)  # setting level
-        formatter = logging.Formatter("[%(asctime)s] %(message)s")
+        formatter_fh = logging.Formatter("[%(asctime)s] %(message)s")
+        formatter_ch = logging.Formatter("%(message)s")
 
         # create file handler
         # setting path for logfile 设置日志文件名称
@@ -21,7 +22,7 @@ class Logger:
         fh = logging.FileHandler(log_name, mode=mode)
         fh.setLevel(logging.INFO)  # setting level for outputs in logfile
         ## define format
-        fh.setFormatter(formatter)
+        fh.setFormatter(formatter_fh)
         ## add handeler to the logger
         self.logger.addHandler(fh)
 
@@ -29,5 +30,5 @@ class Logger:
             # create console handeler
             ch = logging.StreamHandler()
             ch.setLevel(logging.INFO)
-            ch.setFormatter(formatter)
+            ch.setFormatter(formatter_ch)
             self.logger.addHandler(ch)

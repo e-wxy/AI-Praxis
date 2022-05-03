@@ -18,6 +18,9 @@ pandas
 seaborn
 scikit-learn
 opencv
+# for segmentation tasks
+segmentation-models-pytorch
+albumentations
 ```
 
 Create conda env
@@ -32,6 +35,12 @@ python -m ipykernel install --user --name env_name --display-name "Python (env_n
 conda install jupyter
 ```
 
+Install packages for segmentation tasks
+```shell
+conda activate env_name
+conda install segmentation-models-pytorch albumentations -c conda-forge
+```
+
 
 ### File List
 
@@ -40,14 +49,16 @@ conda install jupyter
 ```
 +---Data
 |   +---ISIC2017
-|   |   +---Aug_Training_Data			     	# 扩充训练集（原始+Extra）
-|   |   +---ISIC-2017_Test_Data					# 原始测试集
-|   |   +---ISIC-2017_Validation_Data			# 原始验证集
+|   |   +---Aug_Training_Data			     		# 扩充训练集（原始+Extra）
+|   |   +---ISIC-2017_Test_Data						# 原始测试集
+|   |   +---ISIC-2017_Test_v2_Part1_GroundTruth		# 测试集masks
+|   |   +---ISIC-2017_Training_Part1_GroundTruth	# 训练集masks
+|   |   +---ISIC-2017_Validation_Data				# 原始验证集
+|   |   +---ISIC-2017_Validation_Part1_GroundTruth	# 验证集masks
 |   |   +---ISIC-2017_Test_v2_Part3_GroundTruth.csv
 |   |   +---ISIC-2017_Training_Aug_Part3_GroundTruth.csv
 |   |   \---ISIC-2017_Validation_Part3_GroundTruth.csv
 +---model
-|   |   +---densenet121-a639ec97.pth	# densenet （transfer learning 使用）
 |   |   \---resnet50-19c8e357.pth		# resnet50 （ARL50预训练模型）
 +---nets
 |   |   +---__init__.py
@@ -58,7 +69,8 @@ conda install jupyter
 |   |   +---data.py				# 数据加载
 |   |   +---evaluation.py		# 模型评估
 |   |   +---logger.py			# 日志
-|   |   +---model.py			# 模型加载、存储，checkpoint
+|   |   +---loss.py				# 损失函数
+|   |   +---model.py			# 模型加载、存储、训练，checkpoint
 |   |   \---visualize.py		# plot 样本、混淆矩阵
 +---ARL-CNN.ipynb				# ARL模型
 \---Evaluation.ipynb			# 模型性能评估

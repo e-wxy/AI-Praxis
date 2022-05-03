@@ -1,5 +1,168 @@
+from pickletools import optimize
 import torch
-import os
+import os, tqdm, gc
+from .evaluation import pixel_accuracy, mIoU
+
+
+# train
+class SegTrain(object):
+    def __init__(self, device, log, model_name: str, optimizer=None, scheduler=None, start_epoch: int = 0, best_score=0, checkpoint_file=None):
+        """ trainer for segmentation tasks
+
+        Args:
+            device (torch.device)
+            log (Logger): logfile
+            model_name (str): name of the model
+            optimizer (torch.nn.optim)
+            scheduler (torch.nn.optim)
+            start_epoch (int): initial epoch.
+            best_score (float): metric score for early stopping
+            checkpoint_file: None - train from scratch; else - reload from checkpoint
+        """
+        self.device = device
+        self.log = log
+        self.model_name = model_name
+        if not os.path.exists('model'):
+            os.makedirs('model')
+        if not os.path.exists('checkpoint'):
+            os.makedirs('checkpoint')
+        # path to store checkpoint
+        self.pth_check = os.path.join('checkpoint', 'check_' + model_name + '.pth')
+
+        if checkpoint_file == None:
+            self.epoch = start_epoch
+            self.optimizer = optimizer
+            self.scheduler = scheduler
+            self.costs = []
+            self.train_accs = []
+            self.train_ious = []
+            self.val_accs = []
+            self.val_ious = []
+            self.best_score = best_score
+        else:
+            checkpoint = torch.load(self.pth_check)
+            self.epoch = checkpoint['epoch'] + 1
+            self.optimizer = checkpoint['optimizer']
+            self.scheduler = checkpoint['scheduler']
+            self.costs = checkpoint['costs']
+            self.train_accs = checkpoint['train_accs']
+            self.train_ious = checkpoint['train_ious']
+            self.val_accs = checkpoint['val_accs']
+            self.val_ious = checkpoint['val_ious']
+            self.best_score = checkpoint['best_score']
+
+    def fit(self, model, train_loader, val_loader, criterion, max_epoch, test_period=5, early_threshold=10):
+        size_train = len(train_loader)
+        size_val = len(val_loader)
+        model.train()
+
+        for self.epoch in range(self.epoch, max_epoch):
+            cost = 0
+            iou_score = 0
+            pixel_acc = 0
+
+            for image, mask in train_loader:
+                image, mask = image.to(self.device), mask.to(self.device)
+                self.optimizer.zero_grad()
+                output = model(image)
+                loss = criterion(output, mask)
+                loss.backward()
+                self.optimizer.step()
+
+                iou_score += mIoU(output, mask)
+                pixel_acc += pixel_accuracy(output, mask)
+                cost += loss.item()
+
+            cost /= size_train
+            self.costs.append(cost)
+            self.train_accs.append(pixel_acc/size_train)
+            self.train_ious.append(iou_score/size_train)
+            self.scheduler.step()
+            
+            # del image, mask, loss
+            gc.collect()
+
+            if self.epoch % test_period == 0:
+                # self.eval(model, val_loader)
+                model.eval()
+                iou_score = 0
+                pixel_acc = 0
+                with torch.no_grad():
+                    for image, mask in val_loader:
+                        image, mask = image.to(self.device), mask.to(self.device)
+                        output = model(image)
+                        iou_score += mIoU(output, mask)
+                        pixel_acc += pixel_accuracy(output, mask)
+
+                self.val_accs.append(pixel_acc/size_val)
+                self.val_ious.append(iou_score/size_val)
+                
+                if self.val_accs[-1] >= self.best_score:
+                    self.best_score = self.val_accs[-1]
+                    patience = early_threshold
+                else:
+                    patience -= 1
+                    if patience < 0:
+                        break
+                
+                self.log.logger.info("Epoch:{:3d} cost: {:.4f}\ttrain_acc: {:.4f}\ttrain_iou: {:.4f}\tval_acc: {:.4f}\tval_iou: {:.4f}".format(self.epoch+1, cost, self.train_accs[-1], self.train_ious[-1], self.val_accs[-1], self.val_ious[-1]))
+                
+                model.train()
+
+            self.checkpoint(self.pth_check, model)
+
+        save_model(model, name=self.model_name+'.pkl')
+        history = self.get_history()
+        self.log.logger.info("Model has been saved at {}\n{}".format(self.model_name+'.pkl', history))
+        return history
+
+    @torch.no_grad()
+    def eval(self, model, val_loader):
+        size_val = len(val_loader)
+        model.eval()
+        iou_score = 0
+        pixel_acc = 0
+        for image, mask in val_loader:
+            image, mask = image.to(self.device), mask.to(self.device)
+            output = model(image)
+            iou_score += mIoU(output, mask)
+            pixel_acc += pixel_accuracy(output, mask)
+
+        pixel_acc /= size_val
+        iou_score /= size_val
+        return pixel_acc, iou_score
+
+
+    def checkpoint(self, check_file, model):
+        checkpoint = {
+            'model_state_dict': model.state_dict(),
+            'optimizer': self.optimizer,
+            'scheduler': self.scheduler,
+            'epoch': self.epoch,
+            'costs': self.costs,
+            'train_accs': self.train_accs,
+            'train_ious': self.train_ious,
+            'val_accs': self.val_accs,
+            'val_ious': self.val_ious,
+            'best_score': self.best_score,
+        }
+        torch.save(checkpoint, check_file)
+        
+
+    def get_history(self):
+        history = {
+            'costs': self.costs,
+            'train_accs': self.train_accs,
+            'train_ious': self.train_ious,
+            'val_accs': self.val_accs,
+            'val_ious': self.val_ious
+        }
+        return history
+    
+    def print_history(self): 
+        return "costs = {}\ntrain_accs = {}\ntrain_ious = {}\nval_accs = {}\nval_ious = {}".format(self.costs, self.train_accs, self.train_ious, self.val_accs, self.val_ious)
+
+
 
 
 # store model

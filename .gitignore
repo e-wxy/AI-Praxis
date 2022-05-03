@@ -4,11 +4,13 @@ Ref/
 logs/
 test.ipynb
 exp/
+fig/
 # test
 *.out
 ARL*.py
 Res*
 Demo/*.py
+Seg*.py
 
 # data
 .zip

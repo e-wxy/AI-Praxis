@@ -4,6 +4,8 @@ from PIL import Image, ImageFile
 import os
 import random
 from torchvision import transforms
+import albumentations as A  # image augmentation library for segmentation tasks, https://albumentations.ai/docs/
+import cv2
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 
@@ -113,11 +115,10 @@ class RandomPatch(data.Dataset):
         return len(self.img_labels)
 
     def __getitem__(self, idx: int):
-        idx_sample = idx
-        img_path = os.path.join(self.img_dir, self.img_labels.image_id[idx_sample] + '.jpg')
+        img_path = os.path.join(self.img_dir, self.img_labels.image_id[idx] + '.jpg')
         image = Image.open(img_path)
         image = self.rescale_crop(image)
-        target = self.img_labels['label'].iloc[idx_sample]
+        target = self.img_labels['label'].iloc[idx]
         if self.transform:
             image = self.transform(image)
         if self.target_transform:
@@ -142,3 +143,41 @@ class RandomPatch(data.Dataset):
         img = trans(image)
 
         return img
+
+
+class SegData(data.Dataset):
+    def __init__(self, csv_file_path: str, img_dir: str, mask_dir: str, aug: A.Compose=None, input_transform=None, target_transform=None):
+        self.img_dir = img_dir
+        self.mask_dir = mask_dir
+        df = pd.read_csv(csv_file_path)
+        self.img_id = list(df['image_id'])
+        self.aug = aug
+        self.input_transform = input_transform
+        self.target_transform = target_transform
+
+    def __len__(self):
+        return len(self.img_id)
+
+    def __getitem__(self, idx: int):
+        img_path = os.path.join(self.img_dir, self.img_id[idx] + '.jpg')
+        mask_path = os.path.join(self.mask_dir, self.img_id[idx] + '_segmentation.png')
+#         image = Image.open(img_path)
+#         mask = Image.open(mask_path)
+        image = cv2.imread(img_path)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+#         mask = ImageOps.grayscale(mask)
+        # TO DO: mask unsqueeze
+#         mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+
+        if self.aug:
+            # another way: https://github.com/pytorch/vision/blob/main/references/segmentation/transforms.py
+            augmented = self.aug(image=image, mask=mask)
+#             mask = self.transform(mask) # .unsqueeze(dim=0)
+            image, mask = augmented['image'], augmented['mask']
+        
+        if self.input_transform:
+            image = self.input_transform(image)
+        if self.target_transform:
+            mask = self.target_transform(mask)
+        return image, mask
