@@ -6,7 +6,7 @@ from .evaluation import pixel_accuracy, mIoU
 
 # train
 class SegTrain(object):
-    def __init__(self, device, log, model_name: str, optimizer=None, scheduler=None, start_epoch: int = 0, best_score=0, checkpoint_file=None):
+    def __init__(self, device, log, model_name: str, optimizer=None, scheduler=None, start_epoch: int = 0, best_score=0, checkpoint_model=None):
         """ trainer for segmentation tasks
 
         Args:
@@ -17,7 +17,7 @@ class SegTrain(object):
             scheduler (torch.nn.optim)
             start_epoch (int): initial epoch.
             best_score (float): metric score for early stopping
-            checkpoint_file: None - train from scratch; else - reload from checkpoint
+            checkpoint_model (None or nn.Module): None - train from scratch; nn.Module - reload from checkpoint
         """
         self.device = device
         self.log = log
@@ -29,7 +29,7 @@ class SegTrain(object):
         # path to store checkpoint
         self.pth_check = os.path.join('checkpoint', 'check_' + model_name + '.pth')
 
-        if checkpoint_file == None:
+        if checkpoint_model == None:
             self.epoch = start_epoch
             self.optimizer = optimizer
             self.scheduler = scheduler
@@ -50,10 +50,12 @@ class SegTrain(object):
             self.val_accs = checkpoint['val_accs']
             self.val_ious = checkpoint['val_ious']
             self.best_score = checkpoint['best_score']
+            checkpoint_model.load_state_dict(checkpoint['model_state_dict'])
 
     def fit(self, model, train_loader, val_loader, criterion, max_epoch, test_period=5, early_threshold=10):
         size_train = len(train_loader)
         size_val = len(val_loader)
+        patience = early_threshold
         model.train()
 
         for self.epoch in range(self.epoch, max_epoch):

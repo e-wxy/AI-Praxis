@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 
 class FocalLoss(nn.Module):
-    def __init__(self, alpha: list = None, gamma=2, num_classes: int = 10, reduction='mean'):
+    def __init__(self, alpha: list = None, gamma=2, num_classes: int = 2, reduction='mean'):
         """ Focal Loss
 
         Args:

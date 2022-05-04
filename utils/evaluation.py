@@ -346,7 +346,8 @@ def CAM(feature_of_conv, weight_of_classifier, class_idxs,
 
 @torch.no_grad()
 def pixel_accuracy(output, mask):
-    output = torch.argmax(F.softmax(output, dim=1), dim=1)
+    # output = F.softmax(output, dim=1)
+    output = torch.argmax(output, dim=1)
     correct = torch.eq(output, mask).int()
     accuracy = float(correct.sum()) / float(correct.numel())
     return accuracy
@@ -354,7 +355,7 @@ def pixel_accuracy(output, mask):
 
 @torch.no_grad()
 def mIoU(pred_mask, mask, smooth=1e-10, n_classes=2):
-    pred_mask = F.softmax(pred_mask, dim=1)
+    # pred_mask = F.softmax(pred_mask, dim=1)
     pred_mask = torch.argmax(pred_mask, dim=1)
     pred_mask = pred_mask.contiguous().view(-1)
     mask = mask.contiguous().view(-1)
