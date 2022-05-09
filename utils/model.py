@@ -39,6 +39,7 @@ class SegTrain(object):
             self.val_accs = []
             self.val_ious = []
             self.best_score = best_score
+            self.patience = 0
         else:
             checkpoint = torch.load(self.pth_check)
             self.epoch = checkpoint['epoch'] + 1
@@ -50,12 +51,12 @@ class SegTrain(object):
             self.val_accs = checkpoint['val_accs']
             self.val_ious = checkpoint['val_ious']
             self.best_score = checkpoint['best_score']
+            self.patience = checkpoint['patience']
             checkpoint_model.load_state_dict(checkpoint['model_state_dict'])
 
     def fit(self, model, train_loader, val_loader, criterion, max_epoch, test_period=5, early_threshold=10):
         size_train = len(train_loader)
         size_val = len(val_loader)
-        patience = early_threshold
         model.train()
 
         for self.epoch in range(self.epoch, max_epoch):
@@ -99,12 +100,13 @@ class SegTrain(object):
                 self.val_accs.append(pixel_acc/size_val)
                 self.val_ious.append(iou_score/size_val)
                 
-                if self.val_accs[-1] >= self.best_score:
-                    self.best_score = self.val_accs[-1]
-                    patience = early_threshold
+                if self.val_ious[-1] >= self.best_score:
+                    self.best_score = self.val_ious[-1]
+                    self.patience = 0
+                    save_state_dict(model, name="{}_dict.pth".format(self.model_name))
                 else:
-                    patience -= 1
-                    if patience < 0:
+                    self.patience += 1
+                    if self.patience >= early_threshold:
                         break
                 
                 self.log.logger.info("Epoch:{:3d} cost: {:.4f}\ttrain_acc: {:.4f}\ttrain_iou: {:.4f}\tval_acc: {:.4f}\tval_iou: {:.4f}".format(self.epoch+1, cost, self.train_accs[-1], self.train_ious[-1], self.val_accs[-1], self.val_ious[-1]))
@@ -147,6 +149,7 @@ class SegTrain(object):
             'val_accs': self.val_accs,
             'val_ious': self.val_ious,
             'best_score': self.best_score,
+            'patience': self.patience
         }
         torch.save(checkpoint, check_file)
         
@@ -205,7 +208,7 @@ def save_state_dict(model, path='.', name='state_dict.pth'):
       
     pth_dict = os.path.join(model_dir, name)
     torch.save(model.state_dict(), pth_dict)
-    print('State dict has been saved to {}'.format(pth_dict))
+    print('state dict has been saved to {}'.format(pth_dict))
     
     
 def load_state_dict(model, device, path='.', name='state_dict.pth'):
