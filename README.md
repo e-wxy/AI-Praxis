@@ -36,9 +36,10 @@ conda install jupyter
 ```
 
 Install packages for segmentation tasks
+
 ```shell
 conda activate env_name
-conda install segmentation-models-pytorch albumentations -c conda-forge
+conda install segmentation-models-pytorch albumentations -c conda-forge --yes
 ```
 
 
@@ -73,7 +74,8 @@ conda install segmentation-models-pytorch albumentations -c conda-forge
 |   |   +---model.py			# 模型加载、存储、训练，checkpoint
 |   |   \---visualize.py		# plot 样本、混淆矩阵
 +---ARL-CNN.ipynb				# ARL模型
-\---Evaluation.ipynb			# 模型性能评估
++---Evaluation.ipynb			# 模型性能评估
+\---Segmentation.ipynb			# 分割模型
 ```
 
 预训练模型下载
@@ -91,6 +93,8 @@ wget https://download.pytorch.org/models/resnet50-19c8e357.pth
 
 ## 实验设置
 
+### Classification Task
+
 1. Attention机制
 
    - [ ] 1-1 ARL-50
@@ -107,6 +111,16 @@ wget https://download.pytorch.org/models/resnet50-19c8e357.pth
      - [ ] 2-3 weights = [1, 1, 1]
      - [ ] 2-4 weights = [2.5, 2.5, 0.5]
 
+### Segmentation Task
+
+| **实验编号** | **网络结构** | **预训练** |
+| ------------ | ------------ | ---------- |
+| 1            | UNet         | 否         |
+| 2            | Dense-UNet   | 否         |
+| 3            | Dense-UNet   | 是         |
+| 4            | Res-UNet     | 是         |
+| 5            | ARL-UNet     | 是         |
+
 ## Tips
 
 Run in a terminal
@@ -120,6 +134,13 @@ jupyter nbconvert --to script ARL-CNN.ipynb
 nohup python ARL-CNN.py
 ```
 
+Run with argparse
+
+```shell
+## 分割实验2
+python seg_main.py -c=0(or 1) -p=0
+```
+
 Check GPU info
 
 ```shell
@@ -129,5 +150,6 @@ nvidia-smi
 Unzip
 
 ```shell
+unzip ISIC-2017_Training_Part1_GroundTruth.zip
 tar -xzvf Training_Patch.tar.gz
 ```
