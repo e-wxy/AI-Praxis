@@ -25,6 +25,7 @@ parser.add_argument('-i', '--id', type=int, help='model id')
 parser.add_argument('-n', '--net', type=str, default='densenet121', help="Network architecture (default: 'densenet121')")
 parser.add_argument('-c', '--checked', type=int, default=1, choices=[0, 1], help='Whether continuing from checkpoint (default: 1(True))')
 parser.add_argument('-p', '--pretrained', type=int, default=1, choices=[0, 1], help='Whether using pretrained model (default: 1(True))')
+parser.add_argument('-t', '--title', type=str, default='', help='Commit messages on the experiment')
 
 args = parser.parse_args()
 
@@ -34,7 +35,7 @@ model_id = args.id
 title = 'unet'
 model_name = title + '_' + str(model_id)
 log = utils.Logger(verbose=True, title=os.path.join('seg', title))
-log.logger.info("{} | Network: {}, Pretrained: {}".format(model_name, args.net, args.pretrained))
+log.logger.info("{} | Network: {}, Pretrained: {} | ".format(model_name, args.net, args.pretrained, args.title))
 
 
 # Data Preparation
@@ -114,7 +115,7 @@ history = trainer.fit(model, train_loader, valid_loader, criterion, max_epoch, t
 
 
 
-# Evaluation
+# Basic Evaluation
 
 from utils.evaluation import mIoU, pixel_accuracy
 

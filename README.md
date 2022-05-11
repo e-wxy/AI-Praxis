@@ -97,29 +97,42 @@ wget https://download.pytorch.org/models/resnet50-19c8e357.pth
 
 1. Attention机制
 
-   - [ ] 1-1 ARL-50
-   - [ ] 1-2 ResNet-50
+   - [x] 1-1 ARL-50
+   - [x] 1-2 ResNet-50
 
 2. Loss Function
 
    ARL-14
 
    - Focal Loss
-     - [ ] 2-1 alpha = [1, 1, 1]
-     - [ ] 2-2 alpha = [2.5, 2.5, 0.5]
+     - [x] 2-1 alpha = [1, 1, 1]
+     - [x] 2-2 alpha = [2.5, 2.5, 0.5]
    - Entropy Loss
-     - [ ] 2-3 weights = [1, 1, 1]
-     - [ ] 2-4 weights = [2.5, 2.5, 0.5]
+     - [x] 2-3 weights = [1, 1, 1]
+     - [x] 2-4 weights = [2.5, 2.5, 0.5]
 
 ### Segmentation Task
 
-| **实验编号** | **网络结构** | **预训练** |
-| ------------ | ------------ | ---------- |
-| 1            | UNet         | 否         |
-| 2            | Dense-UNet   | 否         |
-| 3            | Dense-UNet   | 是         |
-| 4            | Res-UNet     | 是         |
-| 5            | ARL-UNet     | 是         |
+| **实验编号** | **网络结构** | **预训练** | STATUS      |
+| ------------ | ------------ | ---------- | ----------- |
+| 1            | UNet         | 否         | To Do       |
+| 2            | Dense-UNet   | 否         | In Progress |
+| 3            | Dense-UNet   | 是         | In Progress |
+| 4            | Res-UNet     | 是         | In Progress |
+| 5            | ARL-UNet     | 是         | To Do       |
+
+## To Implement
+
+- [x] 数据加载&增广
+- [ ] 网络搭建
+  - [ ] UNet
+  - [ ] ARL-UNet
+- [ ] 评价指标
+  - [x] DSC/IoU
+  - [ ] JSI & TJI
+  - [ ] Seg-Evaluation.ipynb/py
+
+
 
 ## Tips
 
