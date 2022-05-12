@@ -1,5 +1,6 @@
 import torch
 import segmentation_models_pytorch as smp
+import nets
 from torch.utils import data
 from torchvision import transforms
 import albumentations as A
@@ -22,7 +23,7 @@ HEIGHT = 224 # 384
 # Command-Line Parsing
 parser = argparse.ArgumentParser(description='Semantic Segmentation on ISIC 2017')
 parser.add_argument('-i', '--id', type=int, help='model id')
-parser.add_argument('-n', '--net', type=str, default='densenet121', help="Network architecture (default: 'densenet121')")
+parser.add_argument('-n', '--net', type=str, default='dense', help="Network architecture (default: 'dense')")
 parser.add_argument('-c', '--checked', type=int, default=1, choices=[0, 1], help='Whether continuing from checkpoint (default: 1(True))')
 parser.add_argument('-p', '--pretrained', type=int, default=1, choices=[0, 1], help='Whether using pretrained model (default: 1(True))')
 parser.add_argument('-t', '--title', type=str, default='', help='Commit messages on the experiment')
@@ -87,7 +88,17 @@ valid_loader = data.DataLoader(valid_data, BATCH_SIZE, shuffle=False, num_worker
 
 encoder = args.net
 decoder_channels = [512, 256, 128, 64]
-model = smp.Unet(encoder, encoder_weights='imagenet', classes=2, activation=None, encoder_depth=len(decoder_channels), decoder_channels=decoder_channels).to(device)
+
+if encoder == 'dense': 
+    model = smp.Unet('densenet121', encoder_weights='imagenet', classes=2, activation=None, encoder_depth=len(decoder_channels), decoder_channels=decoder_channels)
+elif encoder == 'res':
+    model = smp.Unet('resnet18', encoder_weights='imagenet', classes=2, activation=None, encoder_depth=len(decoder_channels), decoder_channels=decoder_channels)
+elif encoder == 'unet':
+    model = nets.UNet(3, 2)
+else:
+    raise ValueError('Not Implemented')
+    
+model = model.to(device)
 log.logger.info("Encoder: {} | Decoder Channels: {} | Size: ({}, {})".format(encoder, decoder_channels, WIDTH, HEIGHT))
 
 # Training
@@ -111,7 +122,7 @@ else:
 acc, iou = trainer.eval(model, valid_loader)
 log.logger.info("Initial Performance on Valid Set: Acc: {}, IoU: {}".format(acc, iou))
 
-history = trainer.fit(model, train_loader, valid_loader, criterion, max_epoch, test_period)
+history = trainer.fit(model, train_loader, valid_loader, criterion, max_epoch, test_period, early_threshold)
 
 
 
