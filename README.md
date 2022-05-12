@@ -115,18 +115,16 @@ wget https://download.pytorch.org/models/resnet50-19c8e357.pth
 
 | **实验编号** | **网络结构** | **预训练** | STATUS      |
 | ------------ | ------------ | ---------- | ----------- |
-| 1            | UNet         | 否         | To Do       |
+| 1            | UNet         | 否         | In Progress |
 | 2            | Dense-UNet   | 否         | In Progress |
 | 3            | Dense-UNet   | 是         | In Progress |
 | 4            | Res-UNet     | 是         | In Progress |
-| 5            | ARL-UNet     | 是         | To Do       |
+| 5            | ARL-UNet     | 是         | In Progress |
 
 ## To Implement
 
 - [x] 数据加载&增广
-- [ ] 网络搭建
-  - [ ] UNet
-  - [ ] ARL-UNet
+- [x] 网络搭建
 - [ ] 评价指标
   - [x] DSC/IoU
   - [ ] JSI & TJI

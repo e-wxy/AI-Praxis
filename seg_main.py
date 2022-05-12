@@ -23,20 +23,19 @@ HEIGHT = 224 # 384
 # Command-Line Parsing
 parser = argparse.ArgumentParser(description='Semantic Segmentation on ISIC 2017')
 parser.add_argument('-i', '--id', type=int, help='model id')
-parser.add_argument('-n', '--net', type=str, default='dense', help="Network architecture (default: 'dense')")
+parser.add_argument('-n', '--net', type=str, default='dense', choices=['dense', 'res', 'unet', 'arl'], help="Network architecture (default: 'dense')")
 parser.add_argument('-c', '--checked', type=int, default=1, choices=[0, 1], help='Whether continuing from checkpoint (default: 1(True))')
 parser.add_argument('-p', '--pretrained', type=int, default=1, choices=[0, 1], help='Whether using pretrained model (default: 1(True))')
-parser.add_argument('-t', '--title', type=str, default='', help='Commit messages on the experiment')
+parser.add_argument('-m', '--message', type=str, default='', help='Commit messages on the experiment')
 
 args = parser.parse_args()
 
 
 # Log
 model_id = args.id
-title = 'unet'
-model_name = title + '_' + str(model_id)
-log = utils.Logger(verbose=True, title=os.path.join('seg', title))
-log.logger.info("{} | Network: {}, Pretrained: {} | ".format(model_name, args.net, args.pretrained, args.title))
+model_name = args.net + '_' + 'unet_' + str(model_id)
+log = utils.Logger(verbose=True, title=os.path.join('seg', args.net))
+log.logger.info("Model Name: {} | Network: {}, Pretrained: {} | ".format(model_name, args.net, args.pretrained, args.message))
 
 
 # Data Preparation
@@ -89,17 +88,24 @@ valid_loader = data.DataLoader(valid_data, BATCH_SIZE, shuffle=False, num_worker
 encoder = args.net
 decoder_channels = [512, 256, 128, 64]
 
+if args.pretrained == 1:
+    encoder_weights = 'imagenet'
+else:
+    encoder_weights = None
+    
 if encoder == 'dense': 
-    model = smp.Unet('densenet121', encoder_weights='imagenet', classes=2, activation=None, encoder_depth=len(decoder_channels), decoder_channels=decoder_channels)
+    model = smp.Unet('densenet121', encoder_weights=encoder_weights, classes=2, activation=None, encoder_depth=len(decoder_channels), decoder_channels=decoder_channels)
 elif encoder == 'res':
     model = smp.Unet('resnet18', encoder_weights='imagenet', classes=2, activation=None, encoder_depth=len(decoder_channels), decoder_channels=decoder_channels)
 elif encoder == 'unet':
     model = nets.UNet(3, 2)
+elif encoder == 'arl':
+    model = nets.arlunet(pretrained='arl18')
 else:
     raise ValueError('Not Implemented')
     
 model = model.to(device)
-log.logger.info("Encoder: {} | Decoder Channels: {} | Size: ({}, {})".format(encoder, decoder_channels, WIDTH, HEIGHT))
+log.logger.info("Encoder: {} | I/O Size: ({}, {})".format(encoder, WIDTH, HEIGHT))
 
 # Training
 init_lr = 1e-4
