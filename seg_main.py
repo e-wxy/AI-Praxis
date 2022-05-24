@@ -43,7 +43,7 @@ log.logger.info("Model Name: {} | Network: {}, Pretrained: {} | ".format(model_n
 
 pth_train_img = 'Data/ISIC2017/Aug_Training_Data'
 pth_valid_img = 'Data/ISIC2017/ISIC-2017_Validation_Data'
-pth_test_img = 'Data/ISIC2017/ISIC-2017_Test_v2_Data'
+pth_test_img = 'Data/ISIC2017/ISIC-2017_Test_Data'
 pth_train_mask = 'Data/ISIC2017/ISIC-2017_Training_Part1_GroundTruth'
 pth_valid_mask = 'Data/ISIC2017/ISIC-2017_Validation_Part1_GroundTruth'
 pth_test_mask = 'Data/ISIC2017/ISIC-2017_Test_v2_Part1_GroundTruth'
