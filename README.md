@@ -50,11 +50,11 @@ conda install segmentation-models-pytorch albumentations -c conda-forge --yes
 ```
 +---Data
 |   +---ISIC2017
-|   |   +---Aug_Training_Data			     		# 扩充训练集（原始+Extra）
-|   |   +---ISIC-2017_Test_Data						# 原始测试集
+|   |   +---Aug_Training_Data			     	# 扩充训练集（原始+Extra）
+|   |   +---ISIC-2017_Test_Data					# 原始测试集
 |   |   +---ISIC-2017_Test_v2_Part1_GroundTruth		# 测试集masks
 |   |   +---ISIC-2017_Training_Part1_GroundTruth	# 训练集masks
-|   |   +---ISIC-2017_Validation_Data				# 原始验证集
+|   |   +---ISIC-2017_Validation_Data			# 原始验证集
 |   |   +---ISIC-2017_Validation_Part1_GroundTruth	# 验证集masks
 |   |   +---ISIC-2017_Test_v2_Part3_GroundTruth.csv
 |   |   +---ISIC-2017_Training_Aug_Part3_GroundTruth.csv
@@ -67,15 +67,16 @@ conda install segmentation-models-pytorch albumentations -c conda-forge --yes
 |   |   \---resnet.py			# baseline model
 +---utils
 |   |   +---__init__.py
-|   |   +---data.py				# 数据加载
+|   |   +---data.py			# 数据加载
 |   |   +---evaluation.py		# 模型评估
 |   |   +---logger.py			# 日志
-|   |   +---loss.py				# 损失函数
+|   |   +---loss.py			# 损失函数
 |   |   +---model.py			# 模型加载、存储、训练，checkpoint
 |   |   \---visualize.py		# plot 样本、混淆矩阵
-+---ARL-CNN.ipynb				# ARL模型
++---ARL-CNN.ipynb			# ARL模型
 +---Evaluation.ipynb			# 模型性能评估
-\---Segmentation.ipynb			# 分割模型
++---Segmentation.ipynb			# 分割模型
+\---seg_main.py				# 分割模型训练
 ```
 
 预训练模型下载
@@ -124,7 +125,7 @@ https://isic-challenge-data.s3.amazonaws.com/2017/ISIC-2017_Test_v2_Part1_Ground
 | ------------ | ------------ | ---------- | ----------- |
 | 1            | UNet         | 否         | In Progress |
 | 2            | Dense-UNet   | 否         | In Progress |
-| 3            | Dense-UNet   | 是         | In Progress |
+| 3            | Dense-UNet   | 是         | Done        |
 | 4            | Res-UNet     | 是         | In Progress |
 | 5            | ARL-UNet     | 是         | In Progress |
 
@@ -132,11 +133,12 @@ https://isic-challenge-data.s3.amazonaws.com/2017/ISIC-2017_Test_v2_Part1_Ground
 
 - [x] 数据加载&增广
 - [x] 网络搭建
-- [ ] 评价指标
+- [x] 评价指标
   - [x] JSI/IoU
   - [x] DSC
   - [x] TJI
   - [x] SE & SP & ACC
+- [ ] 分割效果可视化&比较
   - [ ] Seg-Evaluation.ipynb/py
 
 

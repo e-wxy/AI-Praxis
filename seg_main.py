@@ -160,5 +160,5 @@ log.logger.info("Mean IoU: {}".format(iou_score))
 dsc_score = mDSC(pred_mask, mask)
 log.logger.info("Mean DSC: {}".format(dsc_score))
 
-tji_score = mDSC(pred_mask, mask)
+tji_score = mTJI(pred_mask, mask)
 log.logger.info("Mean TJI: {}".format(tji_score))
