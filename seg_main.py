@@ -38,6 +38,7 @@ log = utils.Logger(verbose=True, title=os.path.join('seg', args.net))
 log.logger.info("Model Name: {} | Network: {}, Pretrained: {} | ".format(model_name, args.net, args.pretrained, args.message))
 
 
+
 # Data Preparation
 
 pth_train_img = 'Data/ISIC2017/Aug_Training_Data'
@@ -59,7 +60,7 @@ trans_train = A.Compose([# A.ElasticTransform(),
                          A.Rotate(limit=180),
                          # A.Sharpen(),
                          # A.ColorJitter(),
-                         # A.GaussNoise(),
+                         A.GaussNoise(),
                          ])
 
 trans_test = A.Compose([A.Resize(height=int(HEIGHT*1.1), width=int(WIDTH*1.1)),
@@ -80,7 +81,8 @@ train_data = utils.SegData(ann_train, pth_train_img, pth_train_mask, trans_train
 valid_data = utils.SegData(ann_valid, pth_valid_img, pth_valid_mask, trans_test, trans_img, trans_mask)
 
 train_loader = data.DataLoader(train_data, BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS, drop_last=True)
-valid_loader = data.DataLoader(valid_data, BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
+valid_loader = data.DataLoader(valid_data, BATCH_SIZE*2, shuffle=False, num_workers=NUM_WORKERS)
+
 
 
 # Model Design
@@ -132,41 +134,31 @@ history = trainer.fit(model, train_loader, valid_loader, criterion, max_epoch, t
 
 
 
-# Basic Evaluation
+# Evaluation
 
-from utils.evaluation import mIoU, pixel_accuracy
-
-@torch.no_grad()
-def seg_predict(model, data_loader):
-    model.eval()
-    label = None
-    pred = None
-
-    for x, y in data_loader:
-        x, y = x.to(device), y.to(device)
-        z = model(x)
-        yhat = z.data
-        if label == None:
-            label = y.to('cpu')
-            pred = yhat.to('cpu')
-        else:
-            label = torch.cat((label, y.to('cpu')), 0)
-            pred = torch.cat((pred, yhat.to('cpu')), 0)
-
-    return label, pred
-    
+from utils.evaluation import seg_predict, pixel_accuracy, pixel_sensitivity, pixel_specificity, mIoU, mDSC, mTJI
 
 del train_loader, valid_loader
 
 test_data = utils.SegData(ann_test, pth_test_img, pth_test_mask, trans_test, trans_img, trans_mask)
-test_loader = data.DataLoader(test_data, BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
+test_loader = data.DataLoader(test_data, BATCH_SIZE*2, shuffle=False, num_workers=NUM_WORKERS)
 
 mask, pred_mask = seg_predict(model, test_loader)
 
 pixel_acc = pixel_accuracy(pred_mask, mask)
 log.logger.info("Pixel Accuracy: {}".format(pixel_acc))
 
+pixel_se = pixel_sensitivity(pred_mask, mask)
+log.logger.info("Pixel Sensitivity: {}".format(pixel_se))
+
+pixel_sp = pixel_specificity(pred_mask, mask)
+log.logger.info("Pixel Specificity: {}".format(pixel_sp))
+
 iou_score = mIoU(pred_mask, mask)
 log.logger.info("Mean IoU: {}".format(iou_score))
 
+dsc_score = mDSC(pred_mask, mask)
+log.logger.info("Mean DSC: {}".format(dsc_score))
 
+tji_score = mDSC(pred_mask, mask)
+log.logger.info("Mean TJI: {}".format(tji_score))

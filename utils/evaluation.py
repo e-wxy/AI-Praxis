@@ -9,6 +9,7 @@ import cv2
 
 
 
+# Evaluation on Classification Tasks
 
 # predict
 
@@ -342,20 +343,114 @@ def CAM(feature_of_conv, weight_of_classifier, class_idxs,
 
 
 
-# Evaluation Metrics for Segmentation tasks
+# Evaluation on Segmentation Tasks
 
 @torch.no_grad()
-def pixel_accuracy(output, mask):
-    # output = F.softmax(output, dim=1)
-    output = torch.argmax(output, dim=1)
-    correct = torch.eq(output, mask).int()
+def seg_predict(model, data_loader):
+    """ Make predictions on segmentation tasks
+
+    Returns:
+        (torch.Tensor, torch.Tensor): true mask, pred mask
+    """
+    model.eval()
+    label = None
+    pred = None
+    device = next(model.parameters()).device
+
+    for x, y in data_loader:
+        x, y = x.to(device), y.to(device)
+        z = model(x)
+        yhat = z.data
+        if label == None:
+            label = y.to('cpu')
+            pred = yhat.to('cpu')
+        else:
+            label = torch.cat((label, y.to('cpu')), 0)
+            pred = torch.cat((pred, yhat.to('cpu')), 0)
+
+    return label, pred
+
+
+@torch.no_grad()
+def pixel_accuracy(pred, label):
+    """ 
+    Pixel Accuracy
+    """
+    pred = torch.argmax(pred, dim=1)
+    correct = torch.eq(pred, label).int()
     accuracy = float(correct.sum()) / float(correct.numel())
     return accuracy
 
+@torch.no_grad()
+def pixel_sensitivity(pred, label):
+    """ 
+    Pixel Sensitivity
+    """
+    pred = torch.argmax(pred, dim=1)
+    tp = torch.logical_and(pred, label).sum().float().item()
+    p = label.sum().float().item()
+    return tp / p
+
+@torch.no_grad()
+def pixel_specificity(pred, label):
+    """ 
+    Pixel Specificity
+    """
+    pred = torch.argmax(pred, dim=1)
+    pixel_count = torch.ones_like(label).sum()
+    tn = (pixel_count - torch.logical_or(pred, label).sum()).float().item()
+    n = (pixel_count - label.sum()).float().item()
+    return tn / n
+
+@torch.no_grad()
+def jsi(pred_mask, mask, smooth=1e-10):
+    """
+    Jaccard Similarity Index / Intersection over Union
+    """
+    pred_mask = torch.argmax(pred_mask, dim=1)
+    pred_mask = pred_mask.contiguous().view(-1)
+    mask = mask.contiguous().view(-1)
+    
+    intersect = torch.logical_and(pred_mask, mask).sum().float().item()
+    union = torch.logical_or(pred_mask, mask).sum().float().item()
+    iou =  (intersect + smooth) / (union + smooth)
+    
+    return iou
+
+@torch.no_grad()
+def dsc(pred_mask, mask, smooth=1e-10):
+    """
+    Dice Similarity Coefficient
+    """
+    pred_mask = torch.argmax(pred_mask, dim=1)
+    pred_mask = pred_mask.contiguous().view(-1)
+    mask = mask.contiguous().view(-1)
+    
+    intersect = torch.logical_and(pred_mask, mask).sum().float().item()
+    sum = pred_mask.sum().float().item() + mask.sum().float().item()
+    
+    dice = 2 * (intersect + smooth) / (sum + smooth)
+    return dice
+
+@torch.no_grad()
+def tji(pred_mask, mask, smooth=1e-10):
+    """
+    Threshold Jaccard Index (0.65)
+    """
+    pred_mask = torch.argmax(pred_mask, dim=1)
+
+    intersect = torch.logical_and(pred_mask, mask).sum(dim=[1, 2])
+    union = torch.logical_or(pred_mask, mask).sum(dim=[1, 2])
+    jsi = torch.div(intersect + smooth, union + smooth)
+    tji = ((jsi >= 0.65) * jsi).mean().item()
+    
+    return tji
 
 @torch.no_grad()
 def mIoU(pred_mask, mask, smooth=1e-10, n_classes=2):
-    # pred_mask = F.softmax(pred_mask, dim=1)
+    """
+    Mean JSI/IoU for multi-target
+    """
     pred_mask = torch.argmax(pred_mask, dim=1)
     pred_mask = pred_mask.contiguous().view(-1)
     mask = mask.contiguous().view(-1)
@@ -373,4 +468,52 @@ def mIoU(pred_mask, mask, smooth=1e-10, n_classes=2):
 
             iou = (intersect + smooth) / (union + smooth)
             iou_per_class.append(iou)
+    return np.nanmean(iou_per_class)
+
+@torch.no_grad()
+def mDSC(pred_mask, mask, smooth=1e-10, n_classes=2):
+    """
+    Mean DSC for multi-target
+    """
+    pred_mask = torch.argmax(pred_mask, dim=1)
+    pred_mask = pred_mask.contiguous().view(-1)
+    mask = mask.contiguous().view(-1)
+
+    dice_per_class = []
+    for clas in range(0, n_classes):
+        true_class = pred_mask == clas
+        true_label = mask == clas
+
+        if true_label.long().sum().item() == 0:
+            dice_per_class.append(np.nan)
+        else:
+            intersect = torch.logical_and(true_class, true_label).sum().float().item()
+            sum = true_class.sum().float().item() + true_label.sum().float().item()
+
+            dice = 2 * (intersect + smooth) / (sum + smooth)
+            dice_per_class.append(dice)
+    return np.nanmean(dice_per_class)
+
+@torch.no_grad()
+def mTJI(pred_mask, mask, smooth=1e-10, n_classes=2):
+    """
+    Mean TJI for multi-target
+    """
+    pred_mask = torch.argmax(pred_mask, dim=1)
+
+    iou_per_class = []
+    for clas in range(0, n_classes):
+        true_class = pred_mask == clas
+        true_label = mask == clas
+
+        if true_label.long().sum().item() == 0:
+            iou_per_class.append(np.nan)
+        else:
+            intersect = torch.logical_and(true_class, true_label).sum(dim=[1, 2])
+            union = torch.logical_or(true_class, true_label).sum(dim=[1, 2])
+
+            iou = torch.div(intersect + smooth, union + smooth)
+            iou = ((iou >= 0.65) * iou).detach().numpy()
+            iou_per_class.append(iou)
+    
     return np.nanmean(iou_per_class)

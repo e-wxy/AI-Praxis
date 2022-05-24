@@ -86,10 +86,17 @@ wget https://download.pytorch.org/models/resnet50-19c8e357.pth
 ```
 
 
-
 ## Dataset
 
 [ISIC Data](https://challenge.isic-archive.com/data/)
+
+分割任务mask
+
+```
+https://isic-challenge-data.s3.amazonaws.com/2017/ISIC-2017_Training_Part1_GroundTruth.zip
+https://isic-challenge-data.s3.amazonaws.com/2017/ISIC-2017_Validation_Part1_GroundTruth.zip
+https://isic-challenge-data.s3.amazonaws.com/2017/ISIC-2017_Test_v2_Part1_GroundTruth.zip
+```
 
 ## 实验设置
 
@@ -126,8 +133,10 @@ wget https://download.pytorch.org/models/resnet50-19c8e357.pth
 - [x] 数据加载&增广
 - [x] 网络搭建
 - [ ] 评价指标
-  - [x] DSC/IoU
-  - [ ] JSI & TJI
+  - [x] JSI/IoU
+  - [x] DSC
+  - [x] TJI
+  - [x] SE & SP & ACC
   - [ ] Seg-Evaluation.ipynb/py
 
 
@@ -142,7 +151,7 @@ conda activate env_name
 # convert .ipynb to .py
 jupyter nbconvert --to script ARL-CNN.ipynb
 # nohup
-nohup python ARL-CNN.py
+nohup python ARL-CNN.py &
 ```
 
 Run with argparse
