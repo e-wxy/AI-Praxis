@@ -97,10 +97,10 @@ def show_seg_samples(images, masks, nrows=2, ncols=3, title=None, normalize=True
         normalize (bool, optional): whether the images are normalized
         dpi (int): dpi for plotting
     """
-    fig, axes = plt.subplots(nrows, ncols, facecolor='#ffffff', dpi=dpi)
+    fig, axes = plt.subplots(nrows, ncols, facecolor='#ffffff', dpi=dpi, figsize=(int(ncols*2.4), int(nrows*1.8)))
 
     if nrows * ncols == 1:
-        axes = imshow(images, labels, axes, normalize)
+        axes = imshow(images, masks, axes, normalize)
     else:
         # .flat: to map samples to multi-dimensional axes
         for (ax, image, mask) in zip(axes.flat, images, masks):
